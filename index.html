@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>2048</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/animations.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo">2048</div>
+            </div>
+            <div class="stats-compact">
+                <div class="stat">
+                    <div class="stat-label">Счет</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Лучший</div>
+                    <div class="stat-value" id="best-score">0</div>
+                </div>
+            </div>
+            <div class="controls-vertical">
+                <button class="icon-btn" id="new-game-btn" title="Новая игра">
+                    <i class="fas fa-rotate-right"></i>
+                    <span class="visually-hidden">Новая игра</span>
+                </button>
+                <button class="icon-btn" id="undo-btn" title="Отмена хода">
+                    <i class="fas fa-undo"></i>
+                    <span class="visually-hidden">Отмена хода</span>
+                </button>
+                <button class="icon-btn" id="leaders-btn" title="Таблица лидеров">
+                    <i class="fas fa-trophy"></i>
+                    <span class="visually-hidden">Таблица лидеров</span>
+                </button>
+            </div>
+            <div class="meta">
+                <div class="author">Селезнев Иван</div>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <h1 class="title"><i class="fas fa-gamepad"></i> Игра 2048</h1>
+                <div class="top-actions">
+                    <button class="text-btn" id="help-btn" aria-label="Помощь">Как играть</button>
+                </div>
+            </header>
+
+            <section class="game-shell">
+                <div class="board-wrap">
+                    <div class="game-board" id="game-board" aria-label="Игровое поле" role="grid"></div>
+
+                    <div class="overlay game-over" id="game-over" role="dialog" aria-modal="true" aria-hidden="true">
+                        <div class="overlay-card">
+                            <h2 class="overlay-title">Игра окончена</h2>
+                            <p class="overlay-text">Ваш результат: <span id="final-score">0</span></p>
+                            <div class="overlay-actions" id="save-score-form">
+                                <input type="text" id="player-name" placeholder="Имя (макс 20 символов)" maxlength="20" />
+                                <button class="primary-btn" id="save-score-btn">
+                                    <i class="fas fa-save"></i> Сохранить
+                                </button>
+                            </div>
+                            <div class="overlay-success" id="save-success" aria-live="polite">
+                                <p><i class="fas fa-check-circle"></i> Рекорд сохранён</p>
+                            </div>
+                            <div class="overlay-footer">
+                                <button class="secondary-btn" id="restart-btn"><i class="fas fa-play"></i> Начать заново</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mobile-controls" id="mobile-controls" aria-hidden="true">
+                    <div class="mc-row">
+                        <button class="mc-btn" id="up-btn" aria-label="Вверх"><i class="fas fa-arrow-up"></i></button>
+                    </div>
+                    <div class="mc-row">
+                        <button class="mc-btn" id="left-btn" aria-label="Влево"><i class="fas fa-arrow-left"></i></button>
+                        <div class="mc-center"></div>
+                        <button class="mc-btn" id="right-btn" aria-label="Вправо"><i class="fas fa-arrow-right"></i></button>
+                    </div>
+                    <div class="mc-row">
+                        <button class="mc-btn" id="down-btn" aria-label="Вниз"><i class="fas fa-arrow-down"></i></button>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="page-footer">
+                <div>Управление: стрелки на клавиатуре, или кнопки/свайпы на мобильных</div>
+            </footer>
+        </main>
+
+        <div class="modal" id="leaders-modal" aria-hidden="true" role="dialog" aria-modal="true">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2><i class="fas fa-trophy"></i> Таблица лидеров</h2>
+                    <button class="close-btn" id="close-leaders-btn" aria-label="Закрыть">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <table class="leaders-table" role="table" aria-label="Топ рекордов">
+                        <thead>
+                            <tr>
+                                <th>Место</th>
+                                <th>Имя</th>
+                                <th>Счет</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaders-table-body"></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button class="danger-btn" id="clear-leaders-btn"><i class="fas fa-trash"></i> Очистить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
