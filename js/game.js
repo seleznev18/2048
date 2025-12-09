@@ -7,6 +7,8 @@ window.Game = {
     maxSteps: 10,
     busy: false,
 
+    initialize() { this.init() }, 
+
     init() {
         this.score = 0
         this.frozen = false
