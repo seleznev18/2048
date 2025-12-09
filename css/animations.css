@@ -1,0 +1,122 @@
+
+@keyframes appear {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.tile-new {
+    animation: appear 0.3s ease;
+    z-index: 20;
+}
+
+@keyframes merge {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    }
+    50% {
+        transform: scale(1.2);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+
+.tile-merged {
+    animation: merge 0.4s ease;
+    z-index: 25;
+}
+
+@keyframes slide {
+    0% {
+        left: var(--start-x);
+        top: var(--start-y);
+    }
+    100% {
+        left: var(--end-x);
+        top: var(--end-y);
+    }
+}
+
+.tile-moving {
+    animation: slide 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 15;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+    20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+.invalid-move {
+    animation: shake 0.5s ease;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.score-update {
+    animation: pulse 0.3s ease;
+    color: #ff9800;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.game-over {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-content {
+    animation: slideIn 0.3s ease;
+}
+
+
+@keyframes buttonPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+.btn:active, .mobile-btn:active {
+    animation: buttonPress 0.2s ease;
+}
+
+
+@keyframes messageAppear {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.message {
+    animation: messageAppear 0.3s ease;
+}
