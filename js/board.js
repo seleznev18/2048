@@ -9,7 +9,7 @@ window.Board = {
     tileGap: 15,
     padding: 15,
 
-    initialize(rootId) {
+    init(rootId) {
         const root = document.getElementById(rootId);
         if (!root) return;
         root.innerHTML = "";
