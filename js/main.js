@@ -5,12 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    if (window.UI && typeof UI.setup === "function") {
-        UI.setup();
-    } else {
-        console.error("UI.setup is not a function or UI is not defined");
-    }
-
+    UI.init();
     setTimeout(() => {
         if (window.UI && typeof UI.notify === "function") {
             UI.notify(
