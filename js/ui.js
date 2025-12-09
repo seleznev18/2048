@@ -1,4 +1,4 @@
-window.Interface = {
+window.UI = {
     init() {
         this.attachHandlers();
         this.refreshLeaderboard();
