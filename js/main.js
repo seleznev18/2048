@@ -1,16 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    if (window.Game) {
-        if (typeof Game.initialize === "function") {
-            Game.initialize();
-        } else if (typeof Game.init === "function") {
-            Game.init();
-        } else {
-            console.error("Game.initialize/init is not a function");
-        }
-    } else {
-        console.error("Game is not defined");
-    }
+
+    Game.init();
+
 
 
     if (window.UI && typeof UI.setup === "function") {
