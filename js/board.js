@@ -8,8 +8,10 @@ window.Playfield = {
     tileW: 100,
     tileGap: 15,
     padding: 15,
+
     initialize(rootId) {
         const root = document.getElementById(rootId);
+        if (!root) return;
         root.innerHTML = "";
 
         this.layerCells = document.createElement("section");
@@ -27,7 +29,6 @@ window.Playfield = {
                 cell.className = "pf-cell";
                 cell.dataset.r = r;
                 cell.dataset.c = c;
-
                 cell.style.width = this.tileW + "px";
                 cell.style.height = this.tileW + "px";
 
@@ -40,17 +41,15 @@ window.Playfield = {
         root.appendChild(this.layerBlocks);
 
         this.resetBoard();
+        this.addRandom();
+        this.addRandom();
     },
 
     resetBoard() {
-        this.blocks.forEach(b => {
-            if (b.el && b.el.parentNode) b.el.remove();
-        });
-
+        this.blocks.forEach(b => b.el?.remove());
         this.matrix = Array(this.dimension)
             .fill(null)
             .map(() => Array(this.dimension).fill(null));
-
         this.blocks = [];
     },
 
@@ -163,7 +162,6 @@ window.Playfield = {
         this._position(block.el, nr, nc, true);
         return true;
     },
-
     combine(a, b) {
         if (!a || !b || a.merged || b.merged || a.v !== b.v) return null;
 
@@ -196,7 +194,6 @@ window.Playfield = {
 
     canShift(block, dir) {
         const { r, c } = block;
-
         switch (dir) {
             case "up": return r > 0 && !this.matrix[r - 1][c];
             case "down": return r < this.dimension - 1 && !this.matrix[r + 1][c];
@@ -221,23 +218,14 @@ window.Playfield = {
     },
 
     snapshot() {
-        const res = [];
-        for (let r = 0; r < this.dimension; r++) {
-            res[r] = [];
-            for (let c = 0; c < this.dimension; c++) {
-                res[r][c] = this.matrix[r][c] ? this.matrix[r][c].v : 0;
-            }
-        }
-        return res;
+        return this.matrix.map(row => row.map(cell => cell ? cell.v : 0));
     },
 
     restore(state) {
         this.resetBoard();
         for (let r = 0; r < this.dimension; r++) {
             for (let c = 0; c < this.dimension; c++) {
-                if (state[r][c] > 0) {
-                    this.spawnBlock(state[r][c], r, c, false);
-                }
+                if (state[r][c] > 0) this.spawnBlock(state[r][c], r, c, false);
             }
         }
     },
@@ -246,9 +234,7 @@ window.Playfield = {
         for (let r = 0; r < this.dimension; r++) {
             for (let c = 0; c < this.dimension; c++) {
                 if (!this.matrix[r][c]) return true;
-
                 const block = this.matrix[r][c];
-
                 if (c < this.dimension - 1 && this.matrix[r][c + 1]?.v === block.v) return true;
                 if (r < this.dimension - 1 && this.matrix[r + 1][c]?.v === block.v) return true;
             }
