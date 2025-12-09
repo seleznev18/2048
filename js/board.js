@@ -1,244 +1,360 @@
 window.Board = {
-    dimension: 4,
-    matrix: [],
-    blocks: [],
-    layerBlocks: null,
-    layerCells: null,
+    size: 4,
+    cells: [],
+    tiles: [],
+    tileContainer: null,
+    gridContainer: null,
+    cellSize: 100,
+    gapSize: 15,
+    boardPadding: 15,
 
-    tileW: 100,
-    tileGap: 15,
-    padding: 15,
+    init(containerId) {
+        const container = document.getElementById(containerId);
+        
 
-    init(rootId) {
-        const root = document.getElementById(rootId);
-        if (!root) return;
-        root.innerHTML = "";
+        container.innerHTML = '';
+        
 
-        this.layerCells = document.createElement("section");
-        this.layerCells.className = "pf-grid";
+        this.gridContainer = document.createElement('div');
+        this.gridContainer.className = 'grid';
+        
 
-        this.layerBlocks = document.createElement("section");
-        this.layerBlocks.className = "pf-blocks";
+        this.tileContainer = document.createElement('div');
+        this.tileContainer.className = 'tiles-container';
+        
 
-        this.matrix = [];
-
-        for (let r = 0; r < this.dimension; r++) {
-            this.matrix[r] = [];
-            for (let c = 0; c < this.dimension; c++) {
-                const cell = document.createElement("div");
-                cell.className = "pf-cell";
-                cell.dataset.r = r;
-                cell.dataset.c = c;
-                cell.style.width = this.tileW + "px";
-                cell.style.height = this.tileW + "px";
-
-                this.layerCells.appendChild(cell);
-                this.matrix[r][c] = null;
+        for (let row = 0; row < this.size; row++) {
+            this.cells[row] = [];
+            for (let col = 0; col < this.size; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                
+     
+                cell.style.width = this.cellSize + 'px';
+                cell.style.height = this.cellSize + 'px';
+                
+                this.gridContainer.appendChild(cell);
+                this.cells[row][col] = null;
             }
         }
-
-        root.appendChild(this.layerCells);
-        root.appendChild(this.layerBlocks);
-
-        this.resetBoard();
-        this.addRandom();
-        this.addRandom();
+        
+        container.appendChild(this.gridContainer);
+        container.appendChild(this.tileContainer);
+        
+ 
+        this.reset();
     },
 
-    resetBoard() {
-        this.blocks.forEach(b => b.el?.remove());
-        this.matrix = Array(this.dimension)
-            .fill(null)
-            .map(() => Array(this.dimension).fill(null));
-        this.blocks = [];
+
+    reset() {
+   
+        this.tiles.forEach(tile => {
+            if (tile.element && tile.element.parentNode) {
+                tile.element.parentNode.removeChild(tile.element);
+            }
+        });
+        
+    
+        this.cells = Array(this.size).fill().map(() => Array(this.size).fill(null));
+        this.tiles = [];
     },
 
-    spawnBlock(value, r, c, animate = true) {
-        if (this.matrix[r][c]) return null;
 
-        const block = {
-            id: crypto.randomUUID(),
-            v: value,
-            r,
-            c,
-            merged: false,
-            el: this._makeBlock(value, r, c)
-        };
+    addTile(value, row, col, isNew = true) {
 
-        this.matrix[r][c] = block;
-        this.blocks.push(block);
-        this.layerBlocks.appendChild(block.el);
-
-        if (animate) {
-            block.el.classList.add("pf-new");
-            setTimeout(() => block.el.classList.remove("pf-new"), 220);
+        if (this.cells[row][col]) {
+            console.warn('Ячейка уже занята, плитка не добавлена:', row, col);
+            return null;
         }
-
-        return block;
-    },
-
-    _makeBlock(v, r, c) {
-        const el = document.createElement("div");
-        el.className = `pf-tile pf-v-${v}`;
-        if (v > 2048) el.classList.add("pf-big");
-
-        el.textContent = v;
-        el.dataset.v = v;
-        el.dataset.r = r;
-        el.dataset.c = c;
-
-        el.style.width = this.tileW + "px";
-        el.style.height = this.tileW + "px";
-
-        this._position(el, r, c, false);
-
-        return el;
-    },
-
-    _position(el, r, c, animate) {
-        const left = c * (this.tileW + this.tileGap) + this.padding;
-        const top = r * (this.tileW + this.tileGap) + this.padding;
-
-        if (animate) {
-            const prevX = parseInt(el.style.left) || left;
-            const prevY = parseInt(el.style.top) || top;
-
-            el.style.setProperty("--sx", prevX + "px");
-            el.style.setProperty("--sy", prevY + "px");
-            el.style.setProperty("--ex", left + "px");
-            el.style.setProperty("--ey", top + "px");
-
-            el.classList.add("pf-move");
+        
+        const tile = {
+            value: value,
+            row: row,
+            col: col,
+            element: this.createTileElement(value, row, col),
+            mergedFrom: null,
+            id: Date.now() + Math.random(),
+            wasMerged: false, 
+            isNew: isNew
+        };
+        
+        this.tiles.push(tile);
+        this.cells[row][col] = tile;
+        this.tileContainer.appendChild(tile.element);
+        
+        if (isNew) {
+            tile.element.classList.add('tile-new');
             setTimeout(() => {
-                el.classList.remove("pf-move");
-                el.style.left = left + "px";
-                el.style.top = top + "px";
+                tile.element.classList.remove('tile-new');
+            }, 200);
+        }
+        
+        return tile;
+    },
+
+    createTileElement(value, row, col) {
+        const tile = document.createElement('div');
+        tile.className = `tile tile-${value}`;
+        if (value > 2048) tile.classList.add('tile-super');
+        
+        tile.textContent = value;
+        tile.dataset.value = value;
+        tile.dataset.row = row;
+        tile.dataset.col = col;
+        tile.dataset.id = Date.now() + Math.random();
+        
+        tile.style.width = this.cellSize + 'px';
+        tile.style.height = this.cellSize + 'px';
+        
+        this.setTilePosition(tile, row, col);
+        
+        return tile;
+    },
+
+
+    setTilePosition(tileElement, row, col, animate = false) {
+
+        const x = col * (this.cellSize + this.gapSize) + this.boardPadding;
+        const y = row * (this.cellSize + this.gapSize) + this.boardPadding;
+        
+        if (animate) {
+
+            const currentX = parseInt(tileElement.style.left) || x;
+            const currentY = parseInt(tileElement.style.top) || y;
+            
+            tileElement.style.setProperty('--start-x', `${currentX}px`);
+            tileElement.style.setProperty('--start-y', `${currentY}px`);
+            tileElement.style.setProperty('--end-x', `${x}px`);
+            tileElement.style.setProperty('--end-y', `${y}px`);
+            
+            tileElement.classList.add('tile-moving');
+            
+            setTimeout(() => {
+                tileElement.classList.remove('tile-moving');
+                tileElement.style.left = `${x}px`;
+                tileElement.style.top = `${y}px`;
             }, 150);
         } else {
-            el.style.left = left + "px";
-            el.style.top = top + "px";
+            tileElement.style.left = `${x}px`;
+            tileElement.style.top = `${y}px`;
         }
-
-        el.dataset.r = r;
-        el.dataset.c = c;
+        
+        tileElement.dataset.row = row;
+        tileElement.dataset.col = col;
     },
 
-    randomFree() {
-        const empty = [];
-        for (let r = 0; r < this.dimension; r++) {
-            for (let c = 0; c < this.dimension; c++) {
-                if (!this.matrix[r][c]) empty.push({ r, c });
+    getRandomEmptyCell() {
+        const emptyCells = [];
+        
+        for (let row = 0; row < this.size; row++) {
+            for (let col = 0; col < this.size; col++) {
+                if (!this.cells[row][col]) {
+                    emptyCells.push({ row, col });
+                }
             }
         }
-        return empty.length ? empty[Math.floor(Math.random() * empty.length)] : null;
+        
+        return emptyCells.length > 0 ? 
+            emptyCells[Math.floor(Math.random() * emptyCells.length)] : 
+            null;
     },
 
-    addRandom() {
-        const spot = this.randomFree();
-        if (!spot) return null;
-        const val = Math.random() < 0.9 ? 2 : 4;
-        return this.spawnBlock(val, spot.r, spot.c, true);
+    addRandomTile() {
+        const emptyCell = this.getRandomEmptyCell();
+        if (!emptyCell) return null;
+        
+        const value = Math.random() < 0.9 ? 2 : 4;
+        return this.addTile(value, emptyCell.row, emptyCell.col, true);
     },
 
-    prepMove() {
-        this.blocks.forEach(b => {
-            b.merged = false;
-            b.prev = { r: b.r, c: b.c };
+    prepareForMove() {
+        this.tiles.forEach(tile => {
+            tile.wasMerged = false; 
+            tile.previousPosition = { row: tile.row, col: tile.col };
         });
     },
-
-    shiftBlock(block, nr, nc) {
-        if (block.r === nr && block.c === nc) return false;
-
-        if (this.matrix[block.r][block.c] === block)
-            this.matrix[block.r][block.c] = null;
-
-        if (this.matrix[nr][nc]) return false;
-
-        this.matrix[nr][nc] = block;
-        block.r = nr;
-        block.c = nc;
-
-        this._position(block.el, nr, nc, true);
+    moveTile(tile, newRow, newCol) {
+        if (tile.row === newRow && tile.col === newCol) {
+            return false;
+        }
+        
+        if (this.cells[tile.row][tile.col] === tile) {
+            this.cells[tile.row][tile.col] = null;
+        }
+        
+        if (this.cells[newRow][newCol]) {
+            console.warn('Новая ячейка уже занята:', newRow, newCol);
+            return false;
+        }
+        
+        this.cells[newRow][newCol] = tile;
+        tile.row = newRow;
+        tile.col = newCol;
+        
+        this.setTilePosition(tile.element, newRow, newCol, true);
         return true;
     },
-    combine(a, b) {
-        if (!a || !b || a.merged || b.merged || a.v !== b.v) return null;
 
-        const nextVal = a.v * 2;
-        const r = b.r;
-        const c = b.c;
 
-        this.removeBlock(a);
-        this.removeBlock(b);
+    mergeTiles(sourceTile, targetTile) {
 
-        const merged = this.spawnBlock(nextVal, r, c, false);
-        merged.merged = true;
-
-        merged.el.classList.add("pf-merge");
-        setTimeout(() => merged.el.classList.remove("pf-merge"), 300);
-
-        return merged;
-    },
-
-    removeBlock(block) {
-        const idx = this.blocks.indexOf(block);
-        if (idx >= 0) this.blocks.splice(idx, 1);
-
-        if (this.matrix[block.r] && this.matrix[block.r][block.c] === block) {
-            this.matrix[block.r][block.c] = null;
+        if (!sourceTile || !targetTile || sourceTile.wasMerged || targetTile.wasMerged) {
+            return null;
         }
-
-        if (block.el && block.el.parentNode) block.el.remove();
-    },
-
-    canShift(block, dir) {
-        const { r, c } = block;
-        switch (dir) {
-            case "up": return r > 0 && !this.matrix[r - 1][c];
-            case "down": return r < this.dimension - 1 && !this.matrix[r + 1][c];
-            case "left": return c > 0 && !this.matrix[r][c - 1];
-            case "right": return c < this.dimension - 1 && !this.matrix[r][c + 1];
+        
+   
+        if (sourceTile.value !== targetTile.value) {
+            return null;
         }
-        return false;
+        
+  
+        const newValue = sourceTile.value * 2;
+        
+
+        const newRow = targetTile.row;
+        const newCol = targetTile.col;
+        
+    
+        this.removeTile(sourceTile);
+        this.removeTile(targetTile);
+        
+   
+        const mergedTile = this.addTile(newValue, newRow, newCol, false);
+        
+ 
+        mergedTile.wasMerged = true;
+        
+ 
+        mergedTile.element.classList.add('tile-merged');
+        setTimeout(() => {
+            if (mergedTile.element) {
+                mergedTile.element.classList.remove('tile-merged');
+            }
+        }, 300);
+        
+        return mergedTile;
     },
 
-    canCombine(block, dir) {
-        const { r, c } = block;
-        let target = null;
 
-        switch (dir) {
-            case "up": target = r > 0 ? this.matrix[r - 1][c] : null; break;
-            case "down": target = r < this.dimension - 1 ? this.matrix[r + 1][c] : null; break;
-            case "left": target = c > 0 ? this.matrix[r][c - 1] : null; break;
-            case "right": target = c < this.dimension - 1 ? this.matrix[r][c + 1] : null; break;
+    removeTile(tile) {
+
+        const index = this.tiles.indexOf(tile);
+        if (index === -1) {
+            return;
         }
+        
 
-        return target && target.v === block.v && !target.merged;
+        this.tiles.splice(index, 1);
+        
+
+        if (tile.row >= 0 && tile.col >= 0 && 
+            tile.row < this.size && tile.col < this.size &&
+            this.cells[tile.row] && this.cells[tile.row][tile.col] === tile) {
+            this.cells[tile.row][tile.col] = null;
+        }
+        
+   
+        if (tile.element && tile.element.parentNode) {
+            tile.element.parentNode.removeChild(tile.element);
+        }
     },
 
-    snapshot() {
-        return this.matrix.map(row => row.map(cell => cell ? cell.v : 0));
+
+    canMoveTile(tile, direction) {
+        const { row, col } = tile;
+        
+        switch (direction) {
+            case 'up':
+                return row > 0 && !this.cells[row - 1][col];
+            case 'down':
+                return row < this.size - 1 && !this.cells[row + 1][col];
+            case 'left':
+                return col > 0 && !this.cells[row][col - 1];
+            case 'right':
+                return col < this.size - 1 && !this.cells[row][col + 1];
+            default:
+                return false;
+        }
     },
 
-    restore(state) {
-        this.resetBoard();
-        for (let r = 0; r < this.dimension; r++) {
-            for (let c = 0; c < this.dimension; c++) {
-                if (state[r][c] > 0) this.spawnBlock(state[r][c], r, c, false);
+
+    canMergeTile(tile, direction) {
+        const { row, col } = tile;
+        let neighborTile = null;
+        
+        switch (direction) {
+            case 'up':
+                neighborTile = row > 0 ? this.cells[row - 1][col] : null;
+                break;
+            case 'down':
+                neighborTile = row < this.size - 1 ? this.cells[row + 1][col] : null;
+                break;
+            case 'left':
+                neighborTile = col > 0 ? this.cells[row][col - 1] : null;
+                break;
+            case 'right':
+                neighborTile = col < this.size - 1 ? this.cells[row][col + 1] : null;
+                break;
+        }
+        
+        return neighborTile && neighborTile.value === tile.value && !neighborTile.wasMerged;
+    },
+
+
+    getBoardState() {
+        const state = [];
+        for (let row = 0; row < this.size; row++) {
+            state[row] = [];
+            for (let col = 0; col < this.size; col++) {
+                state[row][col] = this.cells[row][col] ? this.cells[row][col].value : 0;
+            }
+        }
+        return state;
+    },
+
+
+    restoreBoardState(state) {
+        this.reset();
+        for (let row = 0; row < this.size; row++) {
+            for (let col = 0; col < this.size; col++) {
+                if (state[row][col] > 0) {
+                    this.addTile(state[row][col], row, col, false);
+                }
             }
         }
     },
 
+ 
     hasMoves() {
-        for (let r = 0; r < this.dimension; r++) {
-            for (let c = 0; c < this.dimension; c++) {
-                if (!this.matrix[r][c]) return true;
-                const block = this.matrix[r][c];
-                if (c < this.dimension - 1 && this.matrix[r][c + 1]?.v === block.v) return true;
-                if (r < this.dimension - 1 && this.matrix[r + 1][c]?.v === block.v) return true;
+        for (let row = 0; row < this.size; row++) {
+            for (let col = 0; col < this.size; col++) {
+                if (!this.cells[row][col]) {
+                    return true;
+                }
             }
         }
+        
+
+        for (let row = 0; row < this.size; row++) {
+            for (let col = 0; col < this.size; col++) {
+                const tile = this.cells[row][col];
+                if (tile) {
+                    // Проверяем соседей
+                    if (col < this.size - 1 && this.cells[row][col + 1] && 
+                        this.cells[row][col + 1].value === tile.value) {
+                        return true;
+                    }
+                    if (row < this.size - 1 && this.cells[row + 1][col] && 
+                        this.cells[row + 1][col].value === tile.value) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
         return false;
-    }
+    },
+    
 };
