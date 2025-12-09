@@ -1,4 +1,4 @@
-window.Playfield = {
+window.Board = {
     dimension: 4,
     matrix: [],
     blocks: [],
