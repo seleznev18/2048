@@ -1,23 +1,45 @@
-window.DataVault = {
+window.Storage = {
     KEYS: {
         STATE: "game_state_blob_v2",
         BEST: "best_points_record_v2",
         BOARD: "scoreboard_records_v2"
     },
 
-
-    storeSnapshot(payload) {
+    // Возвращает лучший счет
+    getBestScore() {
         try {
-            const encoded = JSON.stringify(payload);
-            localStorage.setItem(this.KEYS.STATE, encoded);
-            return true;
+            const raw = localStorage.getItem(this.KEYS.BEST);
+            return raw ? parseInt(raw) : 0;
         } catch (err) {
-            console.warn("Не удалось сохранить снимок игры:", err);
-            return false;
+            console.warn("Ошибка чтения лучшего результата:", err);
+            return 0;
         }
     },
 
-    readSnapshot() {
+    // Сохраняет лучший счет
+    saveBestScore(score) {
+        try {
+            const prev = this.getBestScore();
+            if (score > prev) {
+                localStorage.setItem(this.KEYS.BEST, String(score));
+            }
+        } catch (err) {
+            console.warn("Ошибка сохранения лучшего счета:", err);
+        }
+    },
+
+    // Сохраняет состояние игры
+    saveGameState(state) {
+        try {
+            const encoded = JSON.stringify(state);
+            localStorage.setItem(this.KEYS.STATE, encoded);
+        } catch (err) {
+            console.warn("Не удалось сохранить состояние игры:", err);
+        }
+    },
+
+    // Загружает состояние игры
+    loadGameState() {
         try {
             const raw = localStorage.getItem(this.KEYS.STATE);
             return raw ? JSON.parse(raw) : null;
@@ -27,6 +49,7 @@ window.DataVault = {
         }
     },
 
+    // Таблица рекордов
     pushScore(user, points) {
         try {
             const list = this.fetchScores();
@@ -39,19 +62,13 @@ window.DataVault = {
                     year: "numeric"
                 })
             };
-
             list.push(entry);
             list.sort((a, b) => b.value - a.value);
-
             const trimmed = list.slice(0, 10);
-
             localStorage.setItem(this.KEYS.BOARD, JSON.stringify(trimmed));
-            this.updateBest(points);
-
-            return true;
+            this.saveBestScore(points);
         } catch (err) {
             console.warn("Ошибка добавления результата:", err);
-            return false;
         }
     },
 
@@ -68,33 +85,8 @@ window.DataVault = {
     wipeScores() {
         try {
             localStorage.removeItem(this.KEYS.BOARD);
-            return true;
         } catch (err) {
             console.warn("Ошибка очистки лидеров:", err);
-            return false;
-        }
-    },
-    updateBest(val) {
-        try {
-            const prev = this.getBest();
-            if (val > prev) {
-                localStorage.setItem(this.KEYS.BEST, String(val));
-                return true;
-            }
-            return false;
-        } catch (err) {
-            console.warn("Ошибка сохранения лучшего счета:", err);
-            return false;
-        }
-    },
-
-    getBest() {
-        try {
-            const raw = localStorage.getItem(this.KEYS.BEST);
-            return raw ? parseInt(raw) : 0;
-        } catch (err) {
-            console.warn("Ошибка чтения лучшего результата:", err);
-            return 0;
         }
     },
 
@@ -103,10 +95,8 @@ window.DataVault = {
             localStorage.removeItem(this.KEYS.STATE);
             localStorage.removeItem(this.KEYS.BEST);
             localStorage.removeItem(this.KEYS.BOARD);
-            return true;
         } catch (err) {
             console.warn("Ошибка полной очистки:", err);
-            return false;
         }
     }
 };
