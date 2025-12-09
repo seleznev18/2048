@@ -1,102 +1,119 @@
 window.Storage = {
-    KEYS: {
-        STATE: "game_state_blob_v2",
-        BEST: "best_points_record_v2",
-        BOARD: "scoreboard_records_v2"
-    },
 
-    // Возвращает лучший счет
-    getBestScore() {
+    saveGameState(gameState) {
         try {
-            const raw = localStorage.getItem(this.KEYS.BEST);
-            return raw ? parseInt(raw) : 0;
-        } catch (err) {
-            console.warn("Ошибка чтения лучшего результата:", err);
-            return 0;
+            localStorage.setItem('2048_game_state', JSON.stringify(gameState));
+            return true;
+        } catch (e) {
+            console.error('Ошибка при сохранении состояния игры:', e);
+            return false;
         }
     },
 
-    // Сохраняет лучший счет
-    saveBestScore(score) {
-        try {
-            const prev = this.getBestScore();
-            if (score > prev) {
-                localStorage.setItem(this.KEYS.BEST, String(score));
-            }
-        } catch (err) {
-            console.warn("Ошибка сохранения лучшего счета:", err);
-        }
-    },
 
-    // Сохраняет состояние игры
-    saveGameState(state) {
-        try {
-            const encoded = JSON.stringify(state);
-            localStorage.setItem(this.KEYS.STATE, encoded);
-        } catch (err) {
-            console.warn("Не удалось сохранить состояние игры:", err);
-        }
-    },
-
-    // Загружает состояние игры
     loadGameState() {
         try {
-            const raw = localStorage.getItem(this.KEYS.STATE);
-            return raw ? JSON.parse(raw) : null;
-        } catch (err) {
-            console.warn("Ошибка восстановления состояния:", err);
+            const state = localStorage.getItem('2048_game_state');
+            return state ? JSON.parse(state) : null;
+        } catch (e) {
+            console.error('Ошибка при загрузке состояния игры:', e);
             return null;
         }
     },
 
-    // Таблица рекордов
-    pushScore(user, points) {
+
+    saveScore(name, score) {
         try {
-            const list = this.fetchScores();
-            const entry = {
-                player: user || "Игрок",
-                value: points,
-                stamp: new Date().toLocaleDateString("ru-RU", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric"
+            const leaders = this.getLeaders();
+            const newRecord = {
+                name: name || 'Аноним',
+                score: score,
+                date: new Date().toLocaleDateString('ru-RU', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
                 })
             };
-            list.push(entry);
-            list.sort((a, b) => b.value - a.value);
-            const trimmed = list.slice(0, 10);
-            localStorage.setItem(this.KEYS.BOARD, JSON.stringify(trimmed));
-            this.saveBestScore(points);
-        } catch (err) {
-            console.warn("Ошибка добавления результата:", err);
+            
+ 
+            leaders.push(newRecord);
+            
+
+            leaders.sort((a, b) => b.score - a.score);
+            
+   
+            const topLeaders = leaders.slice(0, 10);
+            
+
+            localStorage.setItem('2048_leaders', JSON.stringify(topLeaders));
+            
+
+            this.saveBestScore(score);
+            
+            return true;
+        } catch (e) {
+            console.error('Ошибка при сохранении рекорда:', e);
+            return false;
         }
     },
 
-    fetchScores() {
+
+    getLeaders() {
         try {
-            const raw = localStorage.getItem(this.KEYS.BOARD);
-            return raw ? JSON.parse(raw) : [];
-        } catch (err) {
-            console.warn("Ошибка загрузки таблицы рекордов:", err);
+            const leaders = localStorage.getItem('2048_leaders');
+            return leaders ? JSON.parse(leaders) : [];
+        } catch (e) {
+            console.error('Ошибка при получении таблицы лидеров:', e);
             return [];
         }
     },
 
-    wipeScores() {
+    clearLeaders() {
         try {
-            localStorage.removeItem(this.KEYS.BOARD);
-        } catch (err) {
-            console.warn("Ошибка очистки лидеров:", err);
+            localStorage.removeItem('2048_leaders');
+            return true;
+        } catch (e) {
+            console.error('Ошибка при очистке таблицы лидеров:', e);
+            return false;
         }
     },
 
-    nukeAll() {
+
+    saveBestScore(score) {
         try {
-            localStorage.removeItem(this.KEYS.STATE);
-            localStorage.removeItem(this.KEYS.BEST);
-            localStorage.removeItem(this.KEYS.BOARD);
-        } catch (err) {
-            console.warn("Ошибка полной очистки:", err);
+            const currentBest = this.getBestScore();
+            if (score > currentBest) {
+                localStorage.setItem('2048_best_score', score.toString());
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.error('Ошибка при сохранении лучшего счета:', e);
+            return false;
+        }
+    },
+
+
+    getBestScore() {
+        try {
+            const best = localStorage.getItem('2048_best_score');
+            return best ? parseInt(best) : 0;
+        } catch (e) {
+            console.error('Ошибка при получении лучшего счета:', e);
+            return 0;
+        }
+    },
+
+
+    clearAll() {
+        try {
+            localStorage.removeItem('2048_game_state');
+            localStorage.removeItem('2048_best_score');
+            localStorage.removeItem('2048_leaders');
+            return true;
+        } catch (e) {
+            console.error('Ошибка при очистке данных:', e);
+            return false;
         }
     }
 };
