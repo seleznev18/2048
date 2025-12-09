@@ -56,7 +56,7 @@ window.Game = {
 
     restoreTiles(arr) {
         if (!Array.isArray(arr)) return
-        Board.resetBoard()
+        Board.reset()
         arr.forEach(t => {
             if (typeof t.value === 'number') Board.addTile(t.value, t.row, t.col, false)
         })
@@ -80,7 +80,7 @@ window.Game = {
 
     newGame() {
         if (this.busy) return
-        Board.resetBoard()
+        Board.reset()
         this.score = 0
         this.frozen = false
         this.achieved2048 = false
