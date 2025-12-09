@@ -341,7 +341,7 @@ window.Board = {
             for (let col = 0; col < this.size; col++) {
                 const tile = this.cells[row][col];
                 if (tile) {
-                    // Проверяем соседей
+
                     if (col < this.size - 1 && this.cells[row][col + 1] && 
                         this.cells[row][col + 1].value === tile.value) {
                         return true;
