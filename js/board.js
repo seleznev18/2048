@@ -211,33 +211,6 @@ window.Board = {
         return true;
     },
 
-    mergeTiles(sourceTile, targetTile) {
-        if (!sourceTile || !targetTile || sourceTile.wasMerged || targetTile.wasMerged) {
-            return null;
-        }
-
-        if (sourceTile.value !== targetTile.value) {
-            return null;
-        }
-
-        const newValue = sourceTile.value * 2;
-        const newRow = targetTile.row;
-        const newCol = targetTile.col;
-
-        this.removeTile(sourceTile);
-        this.removeTile(targetTile);
-
-        const mergedTile = this.addTile(newValue, newRow, newCol, false);
-        if (!mergedTile) return null;
-
-        mergedTile.wasMerged = true;
-        mergedTile.element.classList.add('tile-merged');
-        setTimeout(() => {
-            if (mergedTile.element) mergedTile.element.classList.remove('tile-merged');
-        }, 300);
-
-        return mergedTile;
-    },
 
     removeTile(tile) {
         if (!tile) return;
