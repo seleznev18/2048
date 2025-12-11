@@ -340,24 +340,40 @@ color:var(--tile-super);
 .center{display:flex;align-items:center;justify-content:center;}
 .fade-in{animation:fadeIn .28s ease both;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-/* ===== АНИМАЦИЯ ПОЯВЛЕНИЯ ===== */
-@keyframes tile-pop {
-  0% { transform: scale(.36) translateY(6px); opacity: 0; }
-  60% { transform: scale(1.06) translateY(-4px); opacity: 1; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
-}
-.tile.new {
-  animation: tile-pop .36s cubic-bezier(.2,.9,.3,1);
+/* ===== АНИМАЦИЯ ДВИЖЕНИЯ ПЛИТКИ (старая версия) ===== */
+.tile-moving {
+  animation: tile-move 0.15s ease-out forwards;
 }
 
+@keyframes tile-move {
+  from {
+    left: var(--start-x);
+    top: var(--start-y);
+  }
+  to {
+    left: var(--end-x);
+    top: var(--end-y);
+  }
+}
+
+/* ===== АНИМАЦИЯ ПОЯВЛЕНИЯ ===== */
+.tile-new {
+  animation: tile-new-anim 0.25s ease-out;
+}
+@keyframes tile-new-anim {
+  0%   { transform: scale(0.3); opacity: 0; }
+  70%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
 
 /* ===== АНИМАЦИЯ СЛИЯНИЯ ===== */
-@keyframes tile-merge {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.22); }
-  100% { transform: scale(1); }
+.tile-merged {
+  animation: tile-merged-anim 0.25s ease-out;
 }
-.tile.merged {
-  animation: tile-merge .22s ease-out;
+@keyframes tile-merged-anim {
+  0%   { transform: scale(1);   }
+  50%  { transform: scale(1.25); }
+  100% { transform: scale(1);   }
 }
+
 
