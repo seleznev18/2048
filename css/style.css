@@ -138,14 +138,13 @@ color:var(--tile-super);
   border: 2px solid rgba(255,255,255,0.02);
 }
 
-/* BOARD GRID */
 .grid {
-    position: relative; /* important: tiles-container positioned relative to this */
+    position: relative;
     display: grid;
     grid-template-columns: repeat(4, var(--cell-size));
     grid-template-rows: repeat(4, var(--cell-size));
     gap: var(--gap);
-    padding: 15px; /* keep same as board.js boardPadding default */
+    padding: 15px;
     border-radius: 16px;
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     box-shadow: 0 12px 40px rgba(0,0,0,0.5);
@@ -153,7 +152,6 @@ color:var(--tile-super);
     height: max-content;
 }
 
-/* background cells */
 .grid-cell {
     width: var(--cell-size);
     height: var(--cell-size);
@@ -163,7 +161,6 @@ color:var(--tile-super);
     box-shadow: inset 0 6px 18px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.6);
 }
 
-/* tiles layer sits above the grid cells */
 .tiles-container {
     position: absolute;
     inset: 0;
@@ -171,7 +168,6 @@ color:var(--tile-super);
     z-index: 2;
 }
 
-/* tile styling: use CSS variables; JS may override width/height inline but keep defaults here */
 .tile {
     position: absolute;
     display: flex;
@@ -179,8 +175,8 @@ color:var(--tile-super);
     align-items: center;
     font-weight: 800;
     border-radius: 10px;
-    transition: transform 0.15s ease-in-out;
-    -webkit-transition: transform 0.15s ease-in-out;
+    transition: transform 180ms cubic-bezier(.2,.9,.3,1);
+    -webkit-transition: transform 180ms cubic-bezier(.2,.9,.3,1);
     user-select: none;
     pointer-events: none;
     box-shadow: 0 8px 25px rgba(2,8,12,0.45);
@@ -190,37 +186,19 @@ color:var(--tile-super);
     line-height: 1;
     z-index: 10;
     font-size: 20px;
-}
-
-/* animation when a tile appears - note: CSS selector is .tile.new */
-@keyframes tile-pop {
-  0%{ transform: scale(.36) translateY(6px); opacity:0; }
-  60%{ transform: scale(1.06) translateY(-4px); opacity:1; }
-  100%{ transform: scale(1) translateY(0); opacity:1; }
-}
-.tile.new {
-  animation: appear 0.2s ease;
+    will-change: transform;
 }
 
 @keyframes appear {
   0% { transform: scale(0); }
   100% { transform: scale(1); }
 }
-
-.tile.merged {
-  animation: pop 0.2s ease;
+.tile.new {
+  animation: appear 0.22s cubic-bezier(.2,.9,.3,1);
 }
 
-@keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
+.tile-merged { transform: scale(1.06); transition: transform 140ms ease; }
 
-/* merged visual feedback */
-.tile-merged { transform: scale(1.06); transition: transform .12s ease; }
-
-/* different tile colors */
 .tile-2     { background: linear-gradient(180deg, var(--tile-2), #e9fbff); color: #2b2b2b; }
 .tile-4     { background: linear-gradient(180deg, var(--tile-4), #e0f7ff); color: #2b2b2b; }
 .tile-8     { background: linear-gradient(135deg, var(--tile-8), #d1f9ff); color: #061218; }
@@ -242,7 +220,6 @@ color:var(--tile-super);
   border: 1px solid rgba(0,240,224,0.14);
 }
 
-/* mobile / responsive */
 .mobile-controls{display:flex;flex-direction:column;gap:10px;margin-top:18px;align-items:center;}
 .mc-row{display:flex;gap:12px;align-items:center;justify-content:center;}
 .mc-btn{
@@ -340,40 +317,3 @@ color:var(--tile-super);
 .center{display:flex;align-items:center;justify-content:center;}
 .fade-in{animation:fadeIn .28s ease both;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-/* ===== АНИМАЦИЯ ДВИЖЕНИЯ ПЛИТКИ (старая версия) ===== */
-.tile-moving {
-  animation: tile-move 0.15s ease-out forwards;
-}
-
-@keyframes tile-move {
-  from {
-    left: var(--start-x);
-    top: var(--start-y);
-  }
-  to {
-    left: var(--end-x);
-    top: var(--end-y);
-  }
-}
-
-/* ===== АНИМАЦИЯ ПОЯВЛЕНИЯ ===== */
-.tile-new {
-  animation: tile-new-anim 0.25s ease-out;
-}
-@keyframes tile-new-anim {
-  0%   { transform: scale(0.3); opacity: 0; }
-  70%  { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1);    opacity: 1; }
-}
-
-/* ===== АНИМАЦИЯ СЛИЯНИЯ ===== */
-.tile-merged {
-  animation: tile-merged-anim 0.25s ease-out;
-}
-@keyframes tile-merged-anim {
-  0%   { transform: scale(1);   }
-  50%  { transform: scale(1.25); }
-  100% { transform: scale(1);   }
-}
-
-
