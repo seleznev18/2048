@@ -15,44 +15,33 @@ window.Board = {
             return;
         }
 
-        // Clear container
-        container.innerHTML = '';
+        while (container.firstChild) container.removeChild(container.firstChild);
 
-        // Create grid (background cells)
         this.gridContainer = document.createElement('div');
         this.gridContainer.className = 'grid';
-
-        // Append grid to container first so computed styles are available
         container.appendChild(this.gridContainer);
 
-        // Read CSS variables for sizes (so responsive CSS controls layout)
         try {
             const rootStyles = getComputedStyle(document.documentElement);
             const cssCell = rootStyles.getPropertyValue('--cell-size').trim();
             const cssGap = rootStyles.getPropertyValue('--gap').trim();
 
             if (cssCell) {
-                // cssCell like "92px" -> parseInt -> 92
                 this.cellSize = parseInt(cssCell, 10) || this.cellSize;
             }
             if (cssGap) {
                 this.gapSize = parseInt(cssGap, 10) || this.gapSize;
             }
-        } catch (e) {
-            // ignore and use defaults
-        }
+        } catch (e) {}
 
-        // After grid is in DOM, compute its padding (boardPadding)
         const gridComputed = getComputedStyle(this.gridContainer);
         const padLeft = parseInt(gridComputed.paddingLeft, 10);
         this.boardPadding = Number.isFinite(padLeft) ? padLeft : this.boardPadding;
 
-        // Create tiles container INSIDE the grid so absolute positioning is relative to grid
         this.tileContainer = document.createElement('div');
         this.tileContainer.className = 'tiles-container';
         this.gridContainer.appendChild(this.tileContainer);
 
-        // Initialize cells and render background grid-cells
         this.cells = [];
         for (let row = 0; row < this.size; row++) {
             this.cells[row] = [];
@@ -61,41 +50,33 @@ window.Board = {
                 cell.className = 'grid-cell';
                 cell.dataset.row = row;
                 cell.dataset.col = col;
-
-                // grid-template handles size, but set a fallback inline so measurements work
                 cell.style.width = this.cellSize + 'px';
                 cell.style.height = this.cellSize + 'px';
-
                 this.gridContainer.appendChild(cell);
                 this.cells[row][col] = null;
             }
         }
 
-        // Reset logical board state
         this.reset();
     },
 
     reset() {
-        // Remove DOM tile elements
         this.tiles.forEach(tile => {
             if (tile.element && tile.element.parentNode) {
                 tile.element.parentNode.removeChild(tile.element);
             }
         });
 
-        // Reset arrays
         this.cells = Array(this.size).fill().map(() => Array(this.size).fill(null));
         this.tiles = [];
     },
 
     addTile(value, row, col, isNew = true) {
         if (row < 0 || col < 0 || row >= this.size || col >= this.size) {
-            console.warn('Неправильные координаты для плитки:', row, col);
             return null;
         }
 
         if (this.cells[row][col]) {
-            console.warn('Ячейка уже занята, плитка не добавлена:', row, col);
             return null;
         }
 
@@ -117,9 +98,7 @@ window.Board = {
         this.tileContainer.appendChild(tile.element);
 
         if (isNew) {
-            // CSS expects class "new" on .tile (selector .tile.new)
             tile.element.classList.add('new');
-            // remove the new marker after animation
             setTimeout(() => {
                 if (tile.element) tile.element.classList.remove('new');
             }, 360);
@@ -139,49 +118,51 @@ window.Board = {
         tile.dataset.col = col;
         tile.dataset.id = Date.now() + Math.random();
 
-        // Size from computed CSS variables or JS value
         tile.style.width = this.cellSize + 'px';
         tile.style.height = this.cellSize + 'px';
 
-        // Set initial position
-        this.setTilePosition(tile, row, col, false);
-
+        const x = col * (this.cellSize + this.gapSize) + this.boardPadding;
+        const y = row * (this.cellSize + this.gapSize) + this.boardPadding;
+        tile.style.transform = `translate(${x}px, ${y}px)`;
+        tile._currentPos = { x, y };
         return tile;
     },
 
     setTilePosition(tileElement, row, col, animate = false) {
         const x = col * (this.cellSize + this.gapSize) + this.boardPadding;
         const y = row * (this.cellSize + this.gapSize) + this.boardPadding;
-    
-        if (animate) {
-            const currentX = parseInt(tileElement.style.left) || x;
-            const currentY = parseInt(tileElement.style.top) || y;
-    
-            tileElement.style.setProperty('--start-x', `${currentX}px`);
-            tileElement.style.setProperty('--start-y', `${currentY}px`);
-            tileElement.style.setProperty('--end-x', `${x}px`);
-            tileElement.style.setProperty('--end-y', `${y}px`);
-    
-            tileElement.classList.add('tile-moving');
-    
+
+        if (!tileElement._currentPos) {
+            tileElement._currentPos = { x, y };
+            tileElement.style.transition = 'none';
+            tileElement.style.transform = `translate(${x}px, ${y}px)`;
             setTimeout(() => {
-                tileElement.classList.remove('tile-moving');
-                tileElement.style.left = `${x}px`;
-                tileElement.style.top = `${y}px`;
-            }, 150);
+                tileElement.style.transition = '';
+            }, 0);
+        } else if (animate) {
+            tileElement.style.transition = 'transform 180ms cubic-bezier(.2,.9,.3,1)';
+            tileElement.style.transform = `translate(${x}px, ${y}px)`;
+            tileElement._currentPos = { x, y };
+            const clear = () => {
+                tileElement.style.transition = '';
+                tileElement.removeEventListener('transitionend', clear);
+            };
+            tileElement.addEventListener('transitionend', clear);
         } else {
-            tileElement.style.left = `${x}px`;
-            tileElement.style.top = `${y}px`;
+            tileElement.style.transition = 'none';
+            tileElement.style.transform = `translate(${x}px, ${y}px)`;
+            tileElement._currentPos = { x, y };
+            setTimeout(() => {
+                tileElement.style.transition = '';
+            }, 0);
         }
-    
+
         tileElement.dataset.row = row;
         tileElement.dataset.col = col;
-    }
-
+    },
 
     getRandomEmptyCell() {
         const emptyCells = [];
-
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
                 if (!this.cells[row][col]) {
@@ -189,7 +170,6 @@ window.Board = {
                 }
             }
         }
-
         return emptyCells.length > 0 ?
             emptyCells[Math.floor(Math.random() * emptyCells.length)] :
             null;
@@ -198,7 +178,6 @@ window.Board = {
     addRandomTile() {
         const emptyCell = this.getRandomEmptyCell();
         if (!emptyCell) return null;
-
         const value = Math.random() < 0.9 ? 2 : 4;
         return this.addTile(value, emptyCell.row, emptyCell.col, true);
     },
@@ -216,23 +195,18 @@ window.Board = {
             return false;
         }
 
-        // clear current cell if it still references this tile
         if (this.cells[tile.row] && this.cells[tile.row][tile.col] === tile) {
             this.cells[tile.row][tile.col] = null;
         }
 
-        // detect overwriting another tile incorrectly
         if (this.cells[newRow][newCol]) {
-            console.warn('Новая ячейка уже занята:', newRow, newCol);
             return false;
         }
 
-        // update logical grid
         this.cells[newRow][newCol] = tile;
         tile.row = newRow;
         tile.col = newCol;
 
-        // animate DOM element
         this.setTilePosition(tile.element, newRow, newCol, true);
         return true;
     },
@@ -250,17 +224,13 @@ window.Board = {
         const newRow = targetTile.row;
         const newCol = targetTile.col;
 
-        // remove both tiles logically and from DOM
         this.removeTile(sourceTile);
         this.removeTile(targetTile);
 
-        // create merged tile at target position (not marked as new; we'll show merged visual)
         const mergedTile = this.addTile(newValue, newRow, newCol, false);
         if (!mergedTile) return null;
 
         mergedTile.wasMerged = true;
-
-        // add temporary merged visual class
         mergedTile.element.classList.add('tile-merged');
         setTimeout(() => {
             if (mergedTile.element) mergedTile.element.classList.remove('tile-merged');
@@ -271,23 +241,16 @@ window.Board = {
 
     removeTile(tile) {
         if (!tile) return;
-
         const index = this.tiles.indexOf(tile);
         if (index === -1) {
             return;
         }
-
-        // remove from tiles array
         this.tiles.splice(index, 1);
-
-        // clear logical grid reference if present
         if (tile.row >= 0 && tile.col >= 0 &&
             tile.row < this.size && tile.col < this.size &&
             this.cells[tile.row] && this.cells[tile.row][tile.col] === tile) {
             this.cells[tile.row][tile.col] = null;
         }
-
-        // remove DOM element
         if (tile.element && tile.element.parentNode) {
             tile.element.parentNode.removeChild(tile.element);
         }
@@ -357,7 +320,6 @@ window.Board = {
     },
 
     hasMoves() {
-        // empty cell available
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
                 if (!this.cells[row][col]) {
@@ -366,7 +328,6 @@ window.Board = {
             }
         }
 
-        // adjacent equal tiles
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
                 const tile = this.cells[row][col];
@@ -384,5 +345,5 @@ window.Board = {
         }
 
         return false;
-    },
+    }
 };
