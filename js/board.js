@@ -150,36 +150,34 @@ window.Board = {
     },
 
     setTilePosition(tileElement, row, col, animate = false) {
-        // compute coordinates inside grid: col*(cell + gap) + padding
         const x = col * (this.cellSize + this.gapSize) + this.boardPadding;
         const y = row * (this.cellSize + this.gapSize) + this.boardPadding;
-
+    
         if (animate) {
-            // add moving class for smoother transitions
+            const currentX = parseInt(tileElement.style.left) || x;
+            const currentY = parseInt(tileElement.style.top) || y;
+    
+            tileElement.style.setProperty('--start-x', `${currentX}px`);
+            tileElement.style.setProperty('--start-y', `${currentY}px`);
+            tileElement.style.setProperty('--end-x', `${x}px`);
+            tileElement.style.setProperty('--end-y', `${y}px`);
+    
             tileElement.classList.add('tile-moving');
-
-            // ensure left/top have numeric px values
-            const currentLeft = parseInt(tileElement.style.left, 10);
-            const currentTop = parseInt(tileElement.style.top, 10);
-
-            // Set target coordinates after small timeout so CSS transition triggers
-            setTimeout(() => {
-                tileElement.style.left = `${x}px`;
-                tileElement.style.top = `${y}px`;
-            }, 10);
-
-            // cleanup moving class after transition
+    
             setTimeout(() => {
                 tileElement.classList.remove('tile-moving');
-            }, 160);
+                tileElement.style.left = `${x}px`;
+                tileElement.style.top = `${y}px`;
+            }, 150);
         } else {
             tileElement.style.left = `${x}px`;
             tileElement.style.top = `${y}px`;
         }
-
+    
         tileElement.dataset.row = row;
         tileElement.dataset.col = col;
-    },
+    }
+
 
     getRandomEmptyCell() {
         const emptyCells = [];
