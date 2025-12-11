@@ -197,7 +197,7 @@ color:var(--tile-super);
   animation: appear 0.22s cubic-bezier(.2,.9,.3,1);
 }
 
-.tile-merged { transform: scale(1.06); transition: transform 140ms ease; }
+
 
 .tile-2     { background: linear-gradient(180deg, var(--tile-2), #e9fbff); color: #2b2b2b; }
 .tile-4     { background: linear-gradient(180deg, var(--tile-4), #e0f7ff); color: #2b2b2b; }
