@@ -122,9 +122,31 @@ window.Board = {
         const x = col * (this.cellSize + this.gapSize) + this.boardPadding;
         const y = row * (this.cellSize + this.gapSize) + this.boardPadding;
 
-        tileElement.style.transition = 'none'; 
-        tileElement.style.transform = `translate(${x}px, ${y}px)`;
-        tileElement._currentPos = { x, y };
+        if (!tileElement._currentPos) {
+            tileElement._currentPos = { x, y };
+            tileElement.style.transition = 'none';
+            tileElement.style.transform = `translate(${x}px, ${y}px)`;
+            setTimeout(() => {
+                tileElement.style.transition = '';
+            }, 0);
+        } else if (animate) {
+            tileElement.style.transition = 'transform 180ms cubic-bezier(.2,.9,.3,1)';
+            tileElement.style.transform = `translate(${x}px, ${y}px)`;
+            tileElement._currentPos = { x, y };
+            const clear = () => {
+                tileElement.style.transition = '';
+                tileElement.removeEventListener('transitionend', clear);
+            };
+            tileElement.addEventListener('transitionend', clear);
+        } else {
+            tileElement.style.transition = 'none';
+            tileElement.style.transform = `translate(${x}px, ${y}px)`;
+            tileElement._currentPos = { x, y };
+            setTimeout(() => {
+                tileElement.style.transition = '';
+            }, 0);
+        }
+
         tileElement.dataset.row = row;
         tileElement.dataset.col = col;
     },
@@ -136,7 +158,9 @@ window.Board = {
                 if (!this.cells[row][col]) emptyCells.push({ row, col });
             }
         }
-        return emptyCells.length > 0 ? emptyCells[Math.floor(Math.random() * emptyCells.length)] : null;
+        return emptyCells.length > 0 ?
+            emptyCells[Math.floor(Math.random() * emptyCells.length)] :
+            null;
     },
 
     addRandomTile() {
@@ -167,7 +191,7 @@ window.Board = {
         tile.row = newRow;
         tile.col = newCol;
 
-        this.setTilePosition(tile.element, newRow, newCol, false); 
+        this.setTilePosition(tile.element, newRow, newCol, true);
         return true;
     },
 
@@ -185,7 +209,11 @@ window.Board = {
         const mergedTile = this.addTile(newValue, newRow, newCol, false);
         if (!mergedTile) return null;
 
+        // Сразу ставим на правильное место без анимации
+        this.setTilePosition(mergedTile.element, newRow, newCol, false);
+
         mergedTile.wasMerged = true;
+
         return mergedTile;
     },
 
@@ -193,8 +221,8 @@ window.Board = {
         if (!tile) return;
         const index = this.tiles.indexOf(tile);
         if (index === -1) return;
-        this.tiles.splice(index, 1);
 
+        this.tiles.splice(index, 1);
         if (tile.row >= 0 && tile.col >= 0 &&
             tile.row < this.size && tile.col < this.size &&
             this.cells[tile.row] && this.cells[tile.row][tile.col] === tile) {
@@ -248,7 +276,9 @@ window.Board = {
         this.reset();
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
-                if (state[row][col] > 0) this.addTile(state[row][col], row, col, false);
+                if (state[row][col] > 0) {
+                    this.addTile(state[row][col], row, col, false);
+                }
             }
         }
     },
