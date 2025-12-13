@@ -69,9 +69,9 @@ window.Board = {
     addTile(value, row, col, isNew = true) {
         if (row < 0 || col < 0 || row >= this.size || col >= this.size) return null;
         if (this.cells[row][col]) return null;
-
+    
         const element = this.createTileElement(value, row, col);
-
+    
         const tile = {
             value: value,
             row: row,
@@ -82,20 +82,19 @@ window.Board = {
             wasMerged: false,
             isNew: isNew
         };
-
+    
         this.tiles.push(tile);
         this.cells[row][col] = tile;
         this.tileContainer.appendChild(tile.element);
-
-        if (isNew) {
-            tile.element.classList.add('new');
-            setTimeout(() => {
-                if (tile.element) tile.element.classList.remove('new');
-            }, 360);
-        }
-
+    
+        // Сразу задаем правильную позицию без анимации
+        this.setTilePosition(tile.element, row, col, false);
+    
+        // Убираем любые классы анимации появления
+        tile.element.classList.remove('new', 'tile-merged');
+    
         return tile;
-    },
+    }
 
     createTileElement(value, row, col) {
         const tile = document.createElement('div');
