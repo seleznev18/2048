@@ -26,12 +26,8 @@ window.Board = {
             const cssCell = rootStyles.getPropertyValue('--cell-size').trim();
             const cssGap = rootStyles.getPropertyValue('--gap').trim();
 
-            if (cssCell) {
-                this.cellSize = parseInt(cssCell, 10) || this.cellSize;
-            }
-            if (cssGap) {
-                this.gapSize = parseInt(cssGap, 10) || this.gapSize;
-            }
+            if (cssCell) this.cellSize = parseInt(cssCell, 10) || this.cellSize;
+            if (cssGap) this.gapSize = parseInt(cssGap, 10) || this.gapSize;
         } catch (e) {}
 
         const gridComputed = getComputedStyle(this.gridContainer);
@@ -66,19 +62,13 @@ window.Board = {
                 tile.element.parentNode.removeChild(tile.element);
             }
         });
-
         this.cells = Array(this.size).fill().map(() => Array(this.size).fill(null));
         this.tiles = [];
     },
 
     addTile(value, row, col, isNew = true) {
-        if (row < 0 || col < 0 || row >= this.size || col >= this.size) {
-            return null;
-        }
-
-        if (this.cells[row][col]) {
-            return null;
-        }
+        if (row < 0 || col < 0 || row >= this.size || col >= this.size) return null;
+        if (this.cells[row][col]) return null;
 
         const element = this.createTileElement(value, row, col);
 
@@ -132,31 +122,9 @@ window.Board = {
         const x = col * (this.cellSize + this.gapSize) + this.boardPadding;
         const y = row * (this.cellSize + this.gapSize) + this.boardPadding;
 
-        if (!tileElement._currentPos) {
-            tileElement._currentPos = { x, y };
-            tileElement.style.transition = 'none';
-            tileElement.style.transform = `translate(${x}px, ${y}px)`;
-            setTimeout(() => {
-                tileElement.style.transition = '';
-            }, 0);
-        } else if (animate) {
-            tileElement.style.transition = 'transform 180ms cubic-bezier(.2,.9,.3,1)';
-            tileElement.style.transform = `translate(${x}px, ${y}px)`;
-            tileElement._currentPos = { x, y };
-            const clear = () => {
-                tileElement.style.transition = '';
-                tileElement.removeEventListener('transitionend', clear);
-            };
-            tileElement.addEventListener('transitionend', clear);
-        } else {
-            tileElement.style.transition = 'none';
-            tileElement.style.transform = `translate(${x}px, ${y}px)`;
-            tileElement._currentPos = { x, y };
-            setTimeout(() => {
-                tileElement.style.transition = '';
-            }, 0);
-        }
-
+        tileElement.style.transition = 'none'; 
+        tileElement.style.transform = `translate(${x}px, ${y}px)`;
+        tileElement._currentPos = { x, y };
         tileElement.dataset.row = row;
         tileElement.dataset.col = col;
     },
@@ -165,14 +133,10 @@ window.Board = {
         const emptyCells = [];
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
-                if (!this.cells[row][col]) {
-                    emptyCells.push({ row, col });
-                }
+                if (!this.cells[row][col]) emptyCells.push({ row, col });
             }
         }
-        return emptyCells.length > 0 ?
-            emptyCells[Math.floor(Math.random() * emptyCells.length)] :
-            null;
+        return emptyCells.length > 0 ? emptyCells[Math.floor(Math.random() * emptyCells.length)] : null;
     },
 
     addRandomTile() {
@@ -191,33 +155,25 @@ window.Board = {
 
     moveTile(tile, newRow, newCol) {
         if (!tile) return false;
-        if (tile.row === newRow && tile.col === newCol) {
-            return false;
-        }
+        if (tile.row === newRow && tile.col === newCol) return false;
 
         if (this.cells[tile.row] && this.cells[tile.row][tile.col] === tile) {
             this.cells[tile.row][tile.col] = null;
         }
 
-        if (this.cells[newRow][newCol]) {
-            return false;
-        }
+        if (this.cells[newRow][newCol]) return false;
 
         this.cells[newRow][newCol] = tile;
         tile.row = newRow;
         tile.col = newCol;
 
-        this.setTilePosition(tile.element, newRow, newCol, true);
+        this.setTilePosition(tile.element, newRow, newCol, false); 
         return true;
     },
-    mergeTiles(sourceTile, targetTile) {
-        if (!sourceTile || !targetTile || sourceTile.wasMerged || targetTile.wasMerged) {
-            return null;
-        }
 
-        if (sourceTile.value !== targetTile.value) {
-            return null;
-        }
+    mergeTiles(sourceTile, targetTile) {
+        if (!sourceTile || !targetTile || sourceTile.wasMerged || targetTile.wasMerged) return null;
+        if (sourceTile.value !== targetTile.value) return null;
 
         const newValue = sourceTile.value * 2;
         const newRow = targetTile.row;
@@ -230,21 +186,15 @@ window.Board = {
         if (!mergedTile) return null;
 
         mergedTile.wasMerged = true;
-        mergedTile.element.classList.add('tile-merged');
-        setTimeout(() => {
-            if (mergedTile.element) mergedTile.element.classList.remove('tile-merged');
-        }, 300);
-
         return mergedTile;
     },
 
     removeTile(tile) {
         if (!tile) return;
         const index = this.tiles.indexOf(tile);
-        if (index === -1) {
-            return;
-        }
+        if (index === -1) return;
         this.tiles.splice(index, 1);
+
         if (tile.row >= 0 && tile.col >= 0 &&
             tile.row < this.size && tile.col < this.size &&
             this.cells[tile.row] && this.cells[tile.row][tile.col] === tile) {
@@ -260,16 +210,11 @@ window.Board = {
         const { row, col } = tile;
 
         switch (direction) {
-            case 'up':
-                return row > 0 && !this.cells[row - 1][col];
-            case 'down':
-                return row < this.size - 1 && !this.cells[row + 1][col];
-            case 'left':
-                return col > 0 && !this.cells[row][col - 1];
-            case 'right':
-                return col < this.size - 1 && !this.cells[row][col + 1];
-            default:
-                return false;
+            case 'up': return row > 0 && !this.cells[row - 1][col];
+            case 'down': return row < this.size - 1 && !this.cells[row + 1][col];
+            case 'left': return col > 0 && !this.cells[row][col - 1];
+            case 'right': return col < this.size - 1 && !this.cells[row][col + 1];
+            default: return false;
         }
     },
 
@@ -279,18 +224,10 @@ window.Board = {
         let neighborTile = null;
 
         switch (direction) {
-            case 'up':
-                neighborTile = row > 0 ? this.cells[row - 1][col] : null;
-                break;
-            case 'down':
-                neighborTile = row < this.size - 1 ? this.cells[row + 1][col] : null;
-                break;
-            case 'left':
-                neighborTile = col > 0 ? this.cells[row][col - 1] : null;
-                break;
-            case 'right':
-                neighborTile = col < this.size - 1 ? this.cells[row][col + 1] : null;
-                break;
+            case 'up': neighborTile = row > 0 ? this.cells[row - 1][col] : null; break;
+            case 'down': neighborTile = row < this.size - 1 ? this.cells[row + 1][col] : null; break;
+            case 'left': neighborTile = col > 0 ? this.cells[row][col - 1] : null; break;
+            case 'right': neighborTile = col < this.size - 1 ? this.cells[row][col + 1] : null; break;
         }
 
         return neighborTile && neighborTile.value === tile.value && !neighborTile.wasMerged;
@@ -311,9 +248,7 @@ window.Board = {
         this.reset();
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
-                if (state[row][col] > 0) {
-                    this.addTile(state[row][col], row, col, false);
-                }
+                if (state[row][col] > 0) this.addTile(state[row][col], row, col, false);
             }
         }
     },
@@ -321,9 +256,7 @@ window.Board = {
     hasMoves() {
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
-                if (!this.cells[row][col]) {
-                    return true;
-                }
+                if (!this.cells[row][col]) return true;
             }
         }
 
@@ -332,13 +265,9 @@ window.Board = {
                 const tile = this.cells[row][col];
                 if (tile) {
                     if (col < this.size - 1 && this.cells[row][col + 1] &&
-                        this.cells[row][col + 1].value === tile.value) {
-                        return true;
-                    }
+                        this.cells[row][col + 1].value === tile.value) return true;
                     if (row < this.size - 1 && this.cells[row + 1][col] &&
-                        this.cells[row + 1][col].value === tile.value) {
-                        return true;
-                    }
+                        this.cells[row + 1][col].value === tile.value) return true;
                 }
             }
         }
