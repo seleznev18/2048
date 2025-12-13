@@ -94,7 +94,8 @@ window.Board = {
         tile.element.classList.remove('new', 'tile-merged');
     
         return tile;
-    }
+    },
+
 
     createTileElement(value, row, col) {
         const tile = document.createElement('div');
