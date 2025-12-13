@@ -87,10 +87,9 @@ window.Board = {
         this.cells[row][col] = tile;
         this.tileContainer.appendChild(tile.element);
     
-        // Сразу задаем правильную позицию без анимации
         this.setTilePosition(tile.element, row, col, false);
     
-        // Убираем любые классы анимации появления
+
         tile.element.classList.remove('new', 'tile-merged');
     
         return tile;
@@ -209,7 +208,6 @@ window.Board = {
         const mergedTile = this.addTile(newValue, newRow, newCol, false);
         if (!mergedTile) return null;
 
-        // Сразу ставим на правильное место без анимации
         this.setTilePosition(mergedTile.element, newRow, newCol, false);
 
         mergedTile.wasMerged = true;
@@ -236,14 +234,30 @@ window.Board = {
     canMoveTile(tile, direction) {
         if (!tile) return false;
         const { row, col } = tile;
-
+        let targetTile = null;
+    
         switch (direction) {
-            case 'up': return row > 0 && !this.cells[row - 1][col];
-            case 'down': return row < this.size - 1 && !this.cells[row + 1][col];
-            case 'left': return col > 0 && !this.cells[row][col - 1];
-            case 'right': return col < this.size - 1 && !this.cells[row][col + 1];
-            default: return false;
+            case 'up':
+                if (row === 0) return false;
+                targetTile = this.cells[row - 1][col];
+                break;
+            case 'down':
+                if (row === this.size - 1) return false;
+                targetTile = this.cells[row + 1][col];
+                break;
+            case 'left':
+                if (col === 0) return false;
+                targetTile = this.cells[row][col - 1];
+                break;
+            case 'right':
+                if (col === this.size - 1) return false;
+                targetTile = this.cells[row][col + 1];
+                break;
+            default:
+                return false;
         }
+    
+        return !targetTile || (targetTile.value === tile.value && !targetTile.wasMerged);
     },
 
     canMergeTile(tile, direction) {
