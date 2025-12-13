@@ -303,19 +303,23 @@ window.Board = {
                 if (!this.cells[row][col]) return true;
             }
         }
-
+    
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
                 const tile = this.cells[row][col];
-                if (tile) {
-                    if (col < this.size - 1 && this.cells[row][col + 1] &&
-                        this.cells[row][col + 1].value === tile.value) return true;
-                    if (row < this.size - 1 && this.cells[row + 1][col] &&
-                        this.cells[row + 1][col].value === tile.value) return true;
+                if (!tile) continue;
+    
+                if (col < this.size - 1) {
+                    const right = this.cells[row][col + 1];
+                    if (right && right.value === tile.value && !right.wasMerged && !tile.wasMerged) return true;
+                }
+                if (row < this.size - 1) {
+                    const down = this.cells[row + 1][col];
+                    if (down && down.value === tile.value && !down.wasMerged && !tile.wasMerged) return true;
                 }
             }
         }
-
+    
         return false;
     }
 };
