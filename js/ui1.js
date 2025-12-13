@@ -84,7 +84,6 @@ window.UI = {
     handleMove(direction) {
         const res = Game.move(direction);
         if (res.moved && res.scoreAdded > 0) this.displayNotice(`+${res.scoreAdded}`, 'score');
-        else if (!Game.isGameOver) this.displayNotice('Невозможно переместить в этом направлении', 'info');
     },
 
     saveCurrentScore() {
